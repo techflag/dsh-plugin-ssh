@@ -8,7 +8,7 @@ import { generateKeyPairSync } from 'node:crypto'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import * as fs from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { join, resolve, sep } from 'node:path'
 import { Readable, Writable } from 'node:stream'
 import { once } from 'node:events'
 import { SshService, remotePath } from '../src/ssh-service.ts'
@@ -37,7 +37,7 @@ beforeAll(async () => {
       session.on('shell',accept=>{const stream=accept();stream.write('ready\r\n');stream.on('data',(data:Buffer)=>stream.write(data));stream.on('error',()=>{})})
       session.on('sftp',accept=>{
         const sftp=accept(), handles=new Map<number,number>();let next=1
-        const local=(p:string)=>{const file=resolve(directory,'.'+p);if(file!==directory&&!file.startsWith(directory+'/'))throw new Error('outside fixture');return file}
+        const local=(p:string)=>{const file=resolve(directory,'.'+p);if(file!==directory&&!file.startsWith(directory+sep))throw new Error('outside fixture');return file}
         const fail=(id:number)=>sftp.status(id,utils.sftp.STATUS_CODE.FAILURE)
         sftp.on('REALPATH',(id)=>sftp.name(id,[{filename:'/',longname:'/',attrs:{mode:0o40755,uid:0,gid:0,size:0,atime:0,mtime:0}}]))
         sftp.on('OPEN',(id,path,flags,attrs)=>{fs.open(local(path),utils.sftp.flagsToString(flags)!,attrs.mode,(err,fd)=>{if(err){fail(id);return}const h=next++;handles.set(h,fd);const b=Buffer.alloc(4);b.writeUInt32BE(h);sftp.handle(id,b)})})
