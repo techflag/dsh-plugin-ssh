@@ -1,0 +1,3 @@
+- insert:
+    - id: dsh-ssh
+      name: dsh-plugin-ssh

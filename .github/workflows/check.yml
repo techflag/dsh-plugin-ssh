@@ -1,0 +1,41 @@
+name: Plugin checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+  package-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm pack:plugin
+      - run: npm install --prefix .test-harness --ignore-scripts --no-audit --no-fund @deepseek-ai/dsh@0.1.2-rc.1
+      - run: node scripts/smoke-install.mjs .test-harness/node_modules/@deepseek-ai/dsh/lib/bin.js dist/dsh-plugin-ssh.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-plugin-ssh
+          path: dist/dsh-plugin-ssh.tgz
