@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-ssh",
-  "version": "0.1.0-beta.21",
+  "version": "0.1.0-beta.22",
   "description": "DeepSeek Harness 的 SSH / SFTP 工作区：多主机终端、文件传输与编辑、复用宿主模型的 AI 命令助手。",
   "author": "TechFlag",
   "license": "MIT",
@@ -44,7 +44,7 @@
     "build": "node -e \"require('node:fs').rmSync('lib', {recursive:true,force:true})\" && tsdown && vite build && tsc --emitDeclarationOnly",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "test": "vitest run",
-    "pack:plugin": "npm run build && mkdir -p dist && npm pack --pack-destination dist && mv dist/dsh-plugin-ssh-0.1.0-beta.21.tgz dist/dsh-plugin-ssh.tgz",
+    "pack:plugin": "npm run build && mkdir -p dist && npm pack --pack-destination dist && mv dist/dsh-plugin-ssh-0.1.0-beta.22.tgz dist/dsh-plugin-ssh.tgz",
     "check": "npm run build && npm run typecheck && npm test"
   },
   "dependencies": {

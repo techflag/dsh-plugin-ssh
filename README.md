@@ -17,9 +17,17 @@ DSH SSH 是可安装的社区插件，无需另装独立 SSH 客户端。适合�
 | AI 助手 | 选中终端内容即可引用解决、分析常见报错、流式回答、停止生成 |
 | 命令操作 | AI 单行 Shell 代码块可填入终端，或确认后执行 |
 
-当前为 **0.1.0-beta.21 测试版**，尚未在市场收录。macOS 已完成实际 SSH 连接验证；Windows 提供构建流程，尚未完成实机验收。
+当前为 **0.1.0-beta.22 测试版**，尚未在市场收录。macOS 已完成实际 SSH 连接验证；Windows 提供构建流程，尚未完成实机验收。
 
-## 对话操作服务器（beta.21）
+## 实际界面
+
+[![SSH 终端、SFTP 文件与 AI 助手](docs/screenshots/workbench-ai.png)](docs/screenshots/workbench-ai.png)
+
+文件区、终端区和 AI／传输区可以左右拖动；打开文件后，文件预览与终端也可以上下拖动。超过 64 KB 的 UTF-8 文本会以只读方式显示，超过 512 KB 时显示文件末尾约 512 KB，并保留完整文件下载入口。
+
+更多界面和逐步操作见 [中文使用教程](docs/GETTING-STARTED.zh-CN.md)。
+
+## 对话操作服务器（beta.22）
 
 在宿主输入框输入 **`@服务器`**，从 Harness 原生候选菜单选择目标，然后直接描述任务，例如“检查 Java 环境并部署这个 jar”或“分析 Nginx 启动失败并修复”。主机以行内引用显示，提交时才序列化为模型可见的 SSH 上下文。宿主 Agent 调用 `dsh_ssh_hosts`、`dsh_ssh_exec`、`dsh_ssh_read`、`dsh_ssh_edit`、`dsh_ssh_upload`，过程和结果显示为 Harness 原生工具卡片。输入 **`/ssh`** 可打开完整 SSH 工作区。若当前 Agent 预设限制了工具，需选择允许这些工具的预设。
 
@@ -90,7 +98,7 @@ dsh plugin --profile web remove dsh-plugin-ssh
 
 这是预发布测试插件。SSH 路由仅接受本机 `http://127.0.0.1:<端口>`，远程访问 Harness 或 `localhost` 地址暂不支持。会话保存在当前页面内，刷新会断开连接。
 
-单文件下载上限 32 MB，文本编辑上限 64 KB，最多 12 个并发 SSH 会话。暂不支持跳板机、目录递归传输、断点续传、自动重连、终端分屏、主机分组、语法高亮。文本替换要求服务器支持 OpenSSH 原子 rename；版本检查不等同于远端文件锁。不提供 CPU／延迟监测或可靠的命令退出码识别。
+单文件下载上限 32 MB；64 KB 以内的 UTF-8 文本可编辑，更大的文本可只读预览，超过 512 KB 时显示末尾约 512 KB；最多 12 个并发 SSH 会话。暂不支持跳板机、目录递归传输、断点续传、自动重连、终端分屏、主机分组、语法高亮。文本替换要求服务器支持 OpenSSH 原子 rename；版本检查不等同于远端文件锁。不提供 CPU／延迟监测或可靠的命令退出码识别。
 
 ## 开发和构建
 
@@ -98,9 +106,9 @@ dsh plugin --profile web remove dsh-plugin-ssh
 
 ```sh
 corepack enable
-corepack pnpm install --frozen-lockfile
-corepack pnpm check
-corepack pnpm pack:plugin
+corepack yarn install --immutable
+corepack yarn check
+corepack yarn pack:plugin
 ```
 
 产物在 `dist/`，包含 Host 模块、Harness Client 模块、静态工作区和 bundle patch。不会包含 Electron 或 Desktop 包。

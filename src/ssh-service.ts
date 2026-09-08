@@ -13,6 +13,8 @@ export interface SshSession {
   buffered: Buffer[]; bytes: number; observer?: SshOutput; closed: boolean;
 }
 const LIMIT = 1024 * 1024
+const EDITABLE_TEXT_LIMIT = 64 * 1024
+const TEXT_PREVIEW_LIMIT = 512 * 1024
 export function fingerprint(key: Buffer): string { return 'SHA256:' + createHash('sha256').update(key).digest('base64').replace(/=+$/, '') }
 export function validateTarget(target: SshTarget): void {
   if (typeof target.host !== 'string' || !target.host.trim() || target.host.length > 253 || /[\s/\x00-\x1f]/.test(target.host)) throw new Error('主机地址无效')
@@ -166,17 +168,33 @@ export class SshService {
     const limit = new Transform({ transform(chunk: Buffer, _encoding, done) { bytes += chunk.length; if (bytes > 32 * 1024 * 1024) done(new Error('下载超过 32 MB')); else done(null, chunk) } })
     await pipeline(s.sftp.createReadStream(remotePath(path)), limit, destination)
   }
-  async readText(id: string, path: string): Promise<{ text: string; version: string; mode: number }> {
+  async readText(id: string, path: string): Promise<{ text: string; version: string; mode: number; size: number; editable: boolean; truncated: boolean }> {
     const s = this.get(id), target = remotePath(path)
     const attrs = await new Promise<import('ssh2').Stats>((resolve, reject) => s.sftp.lstat(target, (error, attrs) => error ? reject(new Error('无法读取文件')) : resolve(attrs)))
-    if (!attrs.isFile() || attrs.size > 65536) throw new Error('编辑器支持 64 KB 以内的普通 UTF-8 文件')
+    if (!attrs.isFile()) throw new Error('只能预览普通文件')
+    const editable = attrs.size <= EDITABLE_TEXT_LIMIT, truncated = attrs.size > TEXT_PREVIEW_LIMIT
+    // Large operational logs remain useful when the editor cannot safely rewrite them. Read a
+    // bounded tail and include a few overlap bytes so a multi-byte UTF-8 character can be recovered.
+    const start = truncated ? Math.max(0, attrs.size - TEXT_PREVIEW_LIMIT - 4) : 0
     const chunks: Buffer[] = []; let bytes = 0
-    await pipeline(s.sftp.createReadStream(target), new Writable({ write(data: Buffer, _encoding, done) { bytes += data.length; if (bytes > 65536) { done(new Error('文件超过 64 KB')); return }; chunks.push(Buffer.from(data)); done() } }))
-    const content = Buffer.concat(chunks)
+    await pipeline(s.sftp.createReadStream(target, start ? { start } : undefined), new Writable({ write(data: Buffer, _encoding, done) { bytes += data.length; if (bytes > TEXT_PREVIEW_LIMIT + 4) { done(new Error('文本预览超过上限')); return }; chunks.push(Buffer.from(data)); done() } }))
+    let content = Buffer.concat(chunks)
     if (content.includes(0)) throw new Error('二进制文件请使用下载')
     let text: string
-    try { text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(content) } catch { throw new Error('文件不是 UTF-8 编码') }
-    return { text, version: createHash('sha256').update(content).digest('hex'), mode: attrs.mode & 0o777 }
+    try {
+      let decoded: string | undefined
+      for (let offset = 0; offset <= Math.min(4, content.length); offset++) {
+        try { decoded = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(content.subarray(offset)); break } catch { /* Try after a partial leading code point. */ }
+      }
+      if (decoded === undefined) throw new Error()
+      text = decoded
+    } catch { throw new Error('文件不是 UTF-8 编码') }
+    if (truncated) {
+      const firstLine = text.indexOf('\n')
+      if (firstLine >= 0) text = text.slice(firstLine + 1)
+      content = Buffer.from(text)
+    }
+    return { text, version: createHash('sha256').update(content).digest('hex'), mode: attrs.mode & 0o777, size: attrs.size, editable, truncated }
   }
   /** Check for external edits, then use the server's atomic rename extension. */
   async saveText(id: string, path: string, text: string, version: string): Promise<{ version: string }> {

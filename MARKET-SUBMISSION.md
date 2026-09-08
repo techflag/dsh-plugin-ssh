@@ -16,7 +16,7 @@
 
 关键词：`dsh-plugin`、`deepseek-harness`、`ssh`、`sftp`、`terminal`。
 
-版本：`0.1.0-beta.21`，预发布测试版。MIT 许可。
+版本：`0.1.0-beta.22`，预发布测试版。MIT 许可。
 
 ## 两层发布要求
 
@@ -38,7 +38,7 @@ DSH Desktop 的插件市场读取 `awesome-dsh-plugin` 目录。正式申请是�
 
 ### 2. Market 一键安装
 
-Anywhere Labs 的 Community Market 对自动安装还有额外资格判断：npm 官方 registry 的 `latest` 必须返回同名 package 和精确的稳定版本，并且 npm manifest 中仍有合法的 `dsh.bundle.patch`。当前 `0.1.0-beta.21` 是预发布版本，不满足这里的“稳定版本”条件。
+Anywhere Labs 的 Community Market 对自动安装还有额外资格判断：npm 官方 registry 的 `latest` 必须返回同名 package 和精确的稳定版本，并且 npm manifest 中仍有合法的 `dsh.bundle.patch`。当前 `0.1.0-beta.22` 是预发布版本，不满足这里的“稳定版本”条件。
 
 如果暂不发布 npm，目录仍可收录 GitHub 仓库；也可以把预构建 `.tgz` 放到 GitHub Release，并在目录条目增加 `tarball:`。但要得到 Anywhere Labs Market 的稳定一键安装路径，推荐发布预构建的 npm `0.1.0`。
 
@@ -59,7 +59,6 @@ category: remote
 description:
   en: 'SSH terminals, SFTP file transfer and text editing inside DeepSeek Harness, with command suggestions powered by the host models.'
   zh: '在 DeepSeek Harness 内使用 SSH 终端、SFTP 文件传输与文本编辑，并通过宿主模型获取命令建议。'
-tarball: https://github.com/techflag/dsh-plugin-ssh/releases/latest/download/dsh-plugin-ssh.tgz
 ```
 
 ## PR 标题与正文草稿
@@ -70,7 +69,7 @@ tarball: https://github.com/techflag/dsh-plugin-ssh/releases/latest/download/dsh
 
 > Adds DSH SSH to the remote category. It provides interactive SSH sessions, SFTP upload/download, UTF-8 text editing, saved host editing, optional locally encrypted passwords, and AI advice through Harness model services. Users can insert suggested single-line shell commands or execute them after confirmation.
 >
-> The package declares `dsh.bundle` and includes prebuilt Host, Client and workbench assets. Compatibility was checked with Harness 0.1.2-rc.1. This is a beta release; macOS SSH was exercised, while Windows runtime verification remains pending. Downloads are limited to 32 MB and text editing to 64 KB.
+> The package declares `dsh.bundle` and includes prebuilt Host, Client and workbench assets. Compatibility was checked with Harness 0.1.2-rc.1. This is a beta release; macOS SSH was exercised, while Windows runtime verification remains pending. Downloads are limited to 32 MB. Text files up to 64 KB are editable; larger UTF-8 files have a bounded read-only preview.
 >
 > Source: https://github.com/techflag/dsh-plugin-ssh
 > Public package / release URL: https://github.com/techflag/dsh-plugin-ssh/releases/latest/download/dsh-plugin-ssh.tgz
@@ -80,10 +79,8 @@ tarball: https://github.com/techflag/dsh-plugin-ssh/releases/latest/download/dsh
 ## 发布前还缺什么
 
 1. **等待仓库满一天**：目录规则要求公开 GitHub 仓库创建满 1 天，满足后再提交收录 PR。
-2. **截图**：建议展示连接中心、文件与终端分栏、`@服务器` 候选菜单和 SSH 工具卡片。使用演示主机及无敏感信息的命令；现有截图含真实服务器地址、用户名、本地路径或业务日志，不能公开。
-3. **稳定版本**：当前 `0.1.0-beta.21` 可用于测试和 GitHub Release，但需发布不带预发布后缀的版本，才能满足 Community Market 的稳定 npm 自动安装条件。
-4. **npm 发布**：npm 包名可用性已核对，但尚未发布。完成稳定版验收后再发布 `0.1.0`。
-5. **截图清单**：当前没有 `screenshots.json`，准备好脱敏截图后补充。
+2. **稳定版本**：当前 `0.1.0-beta.22` 可用于测试和 GitHub Release，但需发布不带预发布后缀的版本，才能满足 Community Market 的稳定 npm 自动安装条件。
+3. **npm 发布**：npm 包名可用性已核对，但尚未发布。完成稳定版验收后再发布 `0.1.0`。
 
 ## 验证记录与边界
 

@@ -6,6 +6,7 @@ import '@xterm/xterm/css/xterm.css'
 import './style.css'
 import { installAi } from './ai.ts'
 import { installEditor } from './editor.ts'
+import { installPanelSplits } from './panel-split.ts'
 
 const root = document.getElementById('ssh-root')!
 interface Target { name: string; host: string; port: number; username: string; fingerprint?: string; id?:string }
@@ -44,6 +45,13 @@ const ai = installAi(() => {
     return lines.join('\n')
   } }
 })
+const mainLayout=document.querySelector<HTMLElement>('main')!
+const filePanel=document.querySelector<HTMLElement>('.file-panel')!,transfersPanel=document.querySelector<HTMLElement>('.transfers')!,aiPanel=document.querySelector<HTMLElement>('.ai-panel')!
+installPanelSplits(mainLayout,[
+  {panel:filePanel,side:'left',key:'ssh.filePanelWidth',minimum:180,maximum:560,defaultWidth:255,visible:()=>!mainLayout.classList.contains('files-hidden')&&!mainLayout.hidden},
+  {panel:transfersPanel,side:'right',key:'ssh.rightPanelWidth',minimum:260,maximum:620,defaultWidth:320,visible:()=>!transfersPanel.hidden&&!mainLayout.hidden},
+  {panel:aiPanel,side:'right',key:'ssh.rightPanelWidth',minimum:280,maximum:620,defaultWidth:340,visible:()=>!aiPanel.hidden&&!mainLayout.hidden},
+])
 async function saved():Promise<void> {
   await api('hosts-save',{hosts:targets})
   targets=await api<Target[]>('hosts',{})

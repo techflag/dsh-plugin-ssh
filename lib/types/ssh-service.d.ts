@@ -56,6 +56,9 @@ export declare class SshService {
         text: string;
         version: string;
         mode: number;
+        size: number;
+        editable: boolean;
+        truncated: boolean;
     }>;
     /** Check for external edits, then use the server's atomic rename extension. */
     saveText(id: string, path: string, text: string, version: string): Promise<{
