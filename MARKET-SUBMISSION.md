@@ -40,7 +40,7 @@ DSH Desktop 的插件市场读取 `awesome-dsh-plugin` 目录。正式申请是�
 
 Anywhere Labs 的 Community Market 对自动安装还有额外资格判断：npm 官方 registry 的 `latest` 必须返回同名 package 和精确的稳定版本，并且 npm manifest 中仍有合法的 `dsh.bundle.patch`。当前 `0.1.0-beta.22` 是预发布版本，不满足这里的“稳定版本”条件。
 
-如果暂不发布 npm，目录仍可收录 GitHub 仓库；也可以把预构建 `.tgz` 放到 GitHub Release，并在目录条目增加 `tarball:`。但要得到 Anywhere Labs Market 的稳定一键安装路径，推荐发布预构建的 npm `0.1.0`。
+如果暂不发布 npm，目录仍可收录 GitHub 仓库并展示 Release 下载方式，但官方目录 YAML 不接受 `tarball` 字段。此类条目可以浏览，不能被 DSH Desktop Market 标成可自动安装。要得到稳定的一键安装路径，需要把预构建内容发布为 npm `0.1.0`，让官方 registry 的 `latest` 指向该稳定版本。
 
 官方 `@deepseek-ai/*` 包应保持在 `peerDependencies`，并显式包含所支持的预发布版本范围；本插件已经这样声明。
 
