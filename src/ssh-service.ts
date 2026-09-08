@@ -117,10 +117,30 @@ export class SshService {
   async upload(id: string, path: string, source: Readable, onProgress?: (bytes: number) => void, overwrite = false): Promise<void> {
     const s = this.get(id), target = remotePath(path)
     const temporary = target + '.dsh-upload-' + randomUUID() + '.tmp'
-    const output = s.sftp.createWriteStream(temporary, { flags: 'wx', mode: 0o600 })
+    source.pause()
+    let handle: Buffer
+    try {
+      handle = await new Promise<Buffer>((resolve, reject) => s.sftp.open(temporary, 'w', { mode: 0o600 }, (error, value) => error ? reject(error) : resolve(value)))
+    } catch { throw new Error('上传失败：请检查同名文件、权限或连接') }
+    let position = 0, closed = false
+    const closeHandle = () => new Promise<void>(resolve => {
+      if (closed) { resolve(); return }
+      s.sftp.close(handle, () => { closed = true; resolve() })
+    })
+    const output = new Writable({
+      write(chunk: Buffer, _encoding, done) {
+        const data = Buffer.from(chunk), offset = position
+        s.sftp.write(handle, data, 0, data.length, offset, error => {
+          if (!error) position += data.length
+          done(error)
+        })
+      },
+      final(done) { s.sftp.close(handle, error => { closed = true; done(error) }) },
+    })
     let bytes = 0
     const progress = new Transform({ transform(chunk: Buffer, _encoding, done) { bytes += chunk.length; onProgress?.(bytes); done(null, chunk) } })
     try { await pipeline(source, progress, output) } catch {
+      await closeHandle()
       await new Promise<void>(resolve => s.sftp.unlink(temporary, () => resolve()))
       throw new Error('上传失败：请检查同名文件、权限或连接')
     }
