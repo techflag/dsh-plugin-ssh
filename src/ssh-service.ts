@@ -116,45 +116,29 @@ export class SshService {
   /** Create exclusively, or replace atomically through a sibling temporary file. */
   async upload(id: string, path: string, source: Readable, onProgress?: (bytes: number) => void, overwrite = false): Promise<void> {
     const s = this.get(id), target = remotePath(path)
-    const temporary = overwrite ? target + '.dsh-upload-' + randomUUID() + '.tmp' : target
-    // Opening an SFTP handle is asynchronous. Keep callers' readable streams
-    // paused until the upload pipeline is attached so early `data` listeners
-    // cannot drain small files while the server is still opening the target.
-    source.pause()
-    let handle: Buffer
-    try {
-      handle = await new Promise<Buffer>((resolve, reject) => s.sftp.open(temporary, 'wx', { mode: 0o600 }, (error, value) => error ? reject(error) : resolve(value)))
-    } catch { throw new Error('上传失败：请检查同名文件、权限或连接') }
-    let position = 0, closed = false
-    const closeHandle = () => new Promise<void>(resolve => {
-      if (closed) { resolve(); return }
-      s.sftp.close(handle, () => { closed = true; resolve() })
-    })
-    const output = new Writable({
-      write(chunk: Buffer, _encoding, done) {
-        const data = Buffer.from(chunk), offset = position
-        s.sftp.write(handle, data, 0, data.length, offset, error => {
-          if (!error) position += data.length
-          done(error)
-        })
-      },
-      final(done) { s.sftp.close(handle, error => { closed = true; done(error) }) },
-    })
+    const temporary = target + '.dsh-upload-' + randomUUID() + '.tmp'
+    const output = s.sftp.createWriteStream(temporary, { flags: 'wx', mode: 0o600 })
     let bytes = 0
     const progress = new Transform({ transform(chunk: Buffer, _encoding, done) { bytes += chunk.length; onProgress?.(bytes); done(null, chunk) } })
     try { await pipeline(source, progress, output) } catch {
-      // Close the remote handle before cleanup so a source-stream failure cannot
-      // leave an empty or partial file on servers that reject unlinking open files.
-      await closeHandle()
       await new Promise<void>(resolve => s.sftp.unlink(temporary, () => resolve()))
       throw new Error('上传失败：请检查同名文件、权限或连接')
     }
-    if (!overwrite) return
     try {
+      if (!overwrite) {
+        const exists = await new Promise<boolean>(resolve => s.sftp.lstat(target, error => resolve(!error)))
+        if (exists) throw new Error('目标文件已存在')
+        await new Promise<void>((resolve, reject) => s.sftp.rename(temporary, target, error => error ? reject(error) : resolve()))
+        return
+      }
       let mode = 0o600
       try { mode = (await new Promise<import('ssh2').Stats>((resolve,reject) => s.sftp.lstat(target,(error,attrs)=>error?reject(error):resolve(attrs)))).mode & 0o777 } catch { /* New destination keeps the private default mode. */ }
       await new Promise<void>((resolve,reject) => s.sftp.chmod(temporary,mode,error=>error?reject(error):resolve()))
       await new Promise<void>((resolve,reject) => s.sftp.ext_openssh_rename(temporary,target,error=>error?reject(new Error('服务器不支持安全替换，原文件未改')):resolve()))
+    } catch (error) {
+      if (error instanceof Error && error.message === '目标文件已存在') throw new Error('上传失败：目标文件已存在，请确认是否替换')
+      if (error instanceof Error && error.message.includes('服务器不支持安全替换')) throw error
+      throw new Error('上传失败：请检查同名文件、权限或连接')
     } finally { await new Promise<void>(resolve => s.sftp.unlink(temporary,() => resolve())) }
   }
   async download(id: string, path: string, destination: Writable): Promise<void> {
