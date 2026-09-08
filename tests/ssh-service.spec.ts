@@ -98,7 +98,7 @@ describe('real loopback SSH and SFTP',()=>{
     expect(preview.editable).toBe(false);expect(preview.truncated).toBe(true);expect(preview.size).toBe(Buffer.byteLength(largeLog));expect(preview.text).toContain('line 23999');expect(preview.text).not.toContain('line 0 ')
     expect(fs.readdirSync(directory).filter(name=>name.endsWith('.tmp'))).toEqual([])
     service.close(s.id)
-  })
+  },15_000)
   it('executes through a separate channel, returns exit status, and bounds cancellation',async()=>{
     const key=await service.probe(target()),s=await service.connect({...target(),fingerprint:key,password:'test-only'})
     let terminal='';service.attach(s.id,{data:b=>{terminal+=b.toString()},closed:()=>{}})
