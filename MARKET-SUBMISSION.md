@@ -1,6 +1,6 @@
 # DSH SSH 市场提交材料
 
-状态：GitHub 源码与预发布包正在发布；市场目录尚未提交或审核。核对日期：2026-09-08。
+状态：稳定版 0.1.0 正在发布；市场目录提交已准备。核对日期：2026-09-09。
 
 ## 卡片文案
 
@@ -16,7 +16,7 @@
 
 关键词：`dsh-plugin`、`deepseek-harness`、`ssh`、`sftp`、`terminal`。
 
-版本：`0.1.0-beta.22`，预发布测试版。MIT 许可。
+版本：`0.1.0`，稳定版。MIT 许可。
 
 ## 两层发布要求
 
@@ -38,7 +38,7 @@ DSH Desktop 的插件市场读取 `awesome-dsh-plugin` 目录。正式申请是�
 
 ### 2. Market 一键安装
 
-Anywhere Labs 的 Community Market 对自动安装还有额外资格判断：npm 官方 registry 的 `latest` 必须返回同名 package 和精确的稳定版本，并且 npm manifest 中仍有合法的 `dsh.bundle.patch`。当前 `0.1.0-beta.22` 是预发布版本，不满足这里的“稳定版本”条件。
+Anywhere Labs 的 Community Market 对自动安装还有额外资格判断：npm 官方 registry 的 `latest` 必须返回同名 package 和精确的稳定版本，并且 npm manifest 中仍有合法的 `dsh.bundle.patch`。`0.1.0` 发布到 npm 并成为 `latest` 后满足这里的稳定版本条件。
 
 如果暂不发布 npm，目录仍可收录 GitHub 仓库并展示 Release 下载方式，但官方目录 YAML 不接受 `tarball` 字段。此类条目可以浏览，不能被 DSH Desktop Market 标成可自动安装。要得到稳定的一键安装路径，需要把预构建内容发布为 npm `0.1.0`，让官方 registry 的 `latest` 指向该稳定版本。
 
@@ -79,15 +79,14 @@ description:
 ## 发布前还缺什么
 
 1. **等待仓库满一天**：目录规则要求公开 GitHub 仓库创建满 1 天，满足后再提交收录 PR。
-2. **稳定版本**：当前 `0.1.0-beta.22` 可用于测试和 GitHub Release，但需发布不带预发布后缀的版本，才能满足 Community Market 的稳定 npm 自动安装条件。
-3. **npm 发布**：npm 包名可用性已核对，但尚未发布。完成稳定版验收后再发布 `0.1.0`。
+2. **npm 发布**：发布 `dsh-plugin-ssh@0.1.0` 并确认 npm `latest` 指向该版本。
 
 ## 验证记录与边界
 
 - 本地插件检查：22 项测试通过，构建和类型检查通过。
 - 通过官方 CLI 完成隔离安装、bundle 加载、页面资源和卸载检查。
 - 已在 macOS 宿主验证实际 SSH 登录、终端与 SFTP 目录浏览；不将其扩写为所有功能端到端验收。
-- 独立 SSH 命令通道已通过本机 SSH 测试服务器验证；宿主 Agent 到真实业务服务器的完整排查/修复流程以及 Windows 实机验收尚未完成，当前只提供测试版。
+- 独立 SSH 命令通道已通过本机 SSH 测试服务器验证；宿主 Agent 到真实业务服务器的完整排查/修复流程以及 Windows 实机验收尚未完成，Windows 能力声明以自动测试范围为准。
 - 密码为本地文件加密方案，非系统钥匙串；读取同一用户的密钥和密文即可解密。详见 README 数据说明。
 
 安装卡片仍显示本地路径时，代表安装来源是本地 tgz。补全包说明不会自动变成市场收录，也不保证“已安装”卡片展示完整 README；正式发现页依赖收录目录和公开分发信息。
