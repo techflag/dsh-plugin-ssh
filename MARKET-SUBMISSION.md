@@ -1,6 +1,6 @@
 # DSH SSH 市场提交材料
 
-状态：稳定版 0.1.0 正在发布；市场目录提交已准备。核对日期：2026-09-09。
+状态：稳定版 0.1.0 已发布到 npm 与 GitHub Release；市场目录 PR #4702 审核中。核对日期：2026-09-09。
 
 ## 卡片文案
 
@@ -76,10 +76,11 @@ description:
 > Installation command: `dsh plugin --profile web add ./dsh-plugin-ssh.tgz --ignore-scripts`
 > README: https://github.com/techflag/dsh-plugin-ssh#readme
 
-## 发布前还缺什么
+## 收录进度
 
-1. **等待仓库满一天**：目录规则要求公开 GitHub 仓库创建满 1 天，满足后再提交收录 PR。
-2. **npm 发布**：发布 `dsh-plugin-ssh@0.1.0` 并确认 npm `latest` 指向该版本。
+- npm `dsh-plugin-ssh@0.1.0` 已发布，`latest` 与 `dsh.bundle.patch` 已验证。
+- GitHub 稳定 Release `v0.1.0` 已发布。
+- awesome-dsh-plugin 收录 PR：[#4702](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/4702)。
 
 ## 验证记录与边界
 
